@@ -28,11 +28,10 @@ import (
 	"syscall"
 	"time"
 
-	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	datadog "github.com/DataDog/opencensus-go-exporter-datadog"
+	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/exporter/jaeger"
@@ -41,6 +40,7 @@ import (
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 )
 
@@ -183,6 +183,21 @@ func initStackDriverTracing() {
 
 func initTracing() {
 	initJaegerTracing()
+	ddAgentAddr := os.Getenv("DD_AGENT_HOST")
+	if ddAgentAddr == "" {
+		log.Info("Datadog initialization disabled.")
+		return
+	}
+	dd, err := datadog.NewExporter(datadog.Options{TraceAddr: ddAgentAddr + ":8126"})
+	if err != nil {
+		log.Fatalf("Failed to create the Datadog exporter: %v", err)
+	}
+	// It is imperative to invoke flush before your main function exits
+	defer dd.Stop()
+
+	// Register it as a metrics exporter
+	trace.RegisterExporter(dd)
+
 	initStackDriverTracing()
 }
 
@@ -194,7 +209,7 @@ func initProfiling(service, version string) {
 			Service:        service,
 			ServiceVersion: version,
 			// ProjectID must be set if not running on GCP.
-			// ProjectID: "my-project",
+			ProjectID: "catalog",
 		}); err != nil {
 			log.Warnf("failed to start profiler: %+v", err)
 		} else {

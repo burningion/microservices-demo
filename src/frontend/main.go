@@ -23,6 +23,7 @@ import (
 
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	datadog "github.com/DataDog/opencensus-go-exporter-datadog"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -212,9 +213,25 @@ func initTracing(log logrus.FieldLogger) {
 	// to make sure traces are available for observation and analysis.
 	// In a production environment or high QPS setup please use
 	// trace.ProbabilitySampler set at the desired probability.
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	ddAgentAddr := os.Getenv("DD_AGENT_HOST")
+	if ddAgentAddr == "" {
+		log.Info("Datadog initialization disabled.")
+		return
+	}
+	dd, err := datadog.NewExporter(datadog.Options{TraceAddr: ddAgentAddr + ":8126"})
+	if err != nil {
+		log.Fatalf("Failed to create the Datadog exporter: %v", err)
+	}
+	// It is imperative to invoke flush before your main function exits
+	defer dd.Stop()
 
-	initJaegerTracing(log)
+	// Register it as a metrics exporter
+	trace.RegisterExporter(dd)
+
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	_, span := trace.StartSpan(context.Background(), "/foo")
+	span.End()
+
 	initStackdriverTracing(log)
 
 }
@@ -228,7 +245,7 @@ func initProfiling(log logrus.FieldLogger, service, version string) {
 			Service:        service,
 			ServiceVersion: version,
 			// ProjectID must be set if not running on GCP.
-			// ProjectID: "my-project",
+			ProjectID: "frontend",
 		}); err != nil {
 			log.Warnf("warn: failed to start profiler: %+v", err)
 		} else {

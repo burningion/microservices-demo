@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["github.com/DataDog/opencensus-go-exporter-datadog"]
 
 [[constraint]]
   name = "cloud.google.com/go"
