@@ -340,9 +340,12 @@
   version = "v1.17.0"
 
 [[projects]]
-  digest = "1:f0fedaae1fe945d97fb46933dea19867d7e2864ada97d572fae5e9831ce6b17f"
+  digest = "1:82b021893e38a473b0a0e2ce4b0252fa79798b6c419ca29a70ac247b6d5b12a6"
   name = "gopkg.in/DataDog/dd-trace-go.v1"
   packages = [
+    "contrib/gorilla/mux",
+    "contrib/internal/httputil",
+    "contrib/internal/lists",
     "ddtrace",
     "ddtrace/ext",
     "ddtrace/internal",
@@ -372,6 +375,7 @@
     "go.opencensus.io/trace",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
+    "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux",
     "gopkg.in/DataDog/dd-trace-go.v1/ddtrace",
     "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer",
   ]

@@ -23,7 +23,6 @@ import (
 
 	"cloud.google.com/go/profiler"
 	"contrib.go.opencensus.io/exporter/stackdriver"
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/exporter/jaeger"
@@ -33,6 +32,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
+	muxtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -120,7 +120,7 @@ func main() {
 	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
 	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
 
-	r := mux.NewRouter()
+	r := muxtrace.NewRouter(muxtrace.WithServiceName("frontend-app"))
 	r.HandleFunc("/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/product/{id}", svc.productHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc("/cart", svc.viewCartHandler).Methods(http.MethodGet, http.MethodHead)
@@ -219,7 +219,7 @@ func initTracing(log logrus.FieldLogger) {
 		log.Info("Datadog initialization disabled.")
 		return
 	}
-	tracer.Start(tracer.WithAgentAddr(ddAgentAddr + "8126"))
+	tracer.Start(tracer.WithAgentAddr(ddAgentAddr+"8126"), tracer.WithAnalytics(true))
 	initJaegerTracing(log)
 	initStackdriverTracing(log)
 
