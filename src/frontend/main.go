@@ -33,6 +33,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const (
@@ -213,7 +214,12 @@ func initTracing(log logrus.FieldLogger) {
 	// In a production environment or high QPS setup please use
 	// trace.ProbabilitySampler set at the desired probability.
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
-
+	ddAgentAddr := os.Getenv("DD_AGENT_HOST")
+	if ddAgentAddr == "" {
+		log.Info("Datadog initialization disabled.")
+		return
+	}
+	tracer.Start(tracer.WithAgentAddr(ddAgentAddr + "8126"))
 	initJaegerTracing(log)
 	initStackdriverTracing(log)
 

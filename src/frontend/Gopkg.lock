@@ -33,17 +33,6 @@
   source = "github.com/apache/thrift"
 
 [[projects]]
-  branch = "master"
-  digest = "1:6cbe7676244a1429f4c22601f799d377a70449469ef636f91d992d719b559ff3"
-  name = "github.com/GoogleCloudPlatform/microservices-demo"
-  packages = [
-    "src/frontend/genproto",
-    "src/frontend/money",
-  ]
-  pruneopts = "UT"
-  revision = "d944092100696aa4a5974ef5c2e710547a824622"
-
-[[projects]]
   digest = "1:72856926f8208767b837bf51e3373f49139f61889b67dc7fd3c2a0fd711e3f7a"
   name = "github.com/golang/protobuf"
   packages = [
@@ -113,6 +102,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:5e73b34a27d827212102605789de00bd411b2e434812133c83935fe9897c75e1"
+  name = "github.com/philhofer/fwd"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -127,6 +124,14 @@
   pruneopts = "UT"
   revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:c97e8a5e5c435c3287f581cdb4441ba34577ec6ead8422bfedafa6269af7abf6"
+  name = "github.com/tinylib/msgp"
+  packages = ["msgp"]
+  pruneopts = "UT"
+  revision = "af6442a0fcf6e2a1b824f70dd0c734f01e817751"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:a5154dfd6b37bef5a3eab759e13296348e639dc8c7604f538368167782b08ccd"
@@ -334,14 +339,26 @@
   revision = "df014850f6dee74ba2fc94874043a9f3f75fbfd8"
   version = "v1.17.0"
 
+[[projects]]
+  digest = "1:f0fedaae1fe945d97fb46933dea19867d7e2864ada97d572fae5e9831ce6b17f"
+  name = "gopkg.in/DataDog/dd-trace-go.v1"
+  packages = [
+    "ddtrace",
+    "ddtrace/ext",
+    "ddtrace/internal",
+    "ddtrace/tracer",
+    "internal/globalconfig",
+  ]
+  pruneopts = "UT"
+  revision = "c19e9e56d5b5b71b6507ce1b0ec06d85aa3705a1"
+  version = "v1.14.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "cloud.google.com/go/profiler",
     "contrib.go.opencensus.io/exporter/stackdriver",
-    "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto",
-    "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/money",
     "github.com/golang/protobuf/proto",
     "github.com/google/uuid",
     "github.com/gorilla/mux",
@@ -355,6 +372,8 @@
     "go.opencensus.io/trace",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
+    "gopkg.in/DataDog/dd-trace-go.v1/ddtrace",
+    "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

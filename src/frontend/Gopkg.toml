@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["gopkg.in/DataDog/dd-trace-go.v1/ddtrace"]
 
 [[constraint]]
   name = "cloud.google.com/go"
