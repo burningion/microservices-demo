@@ -42,6 +42,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	grpctrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 var (
@@ -119,7 +121,10 @@ func run(port string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+	si := grpctrace.StreamServerInterceptor(grpctrace.WithServiceName("product-catalog"))
+	ui := grpctrace.UnaryServerInterceptor(grpctrace.WithServiceName("product-catalog"))
+
+	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}), grpc.StreamInterceptor(si), grpc.UnaryInterceptor(ui))
 	svc := &productCatalog{}
 	pb.RegisterProductCatalogServiceServer(srv, svc)
 	healthpb.RegisterHealthServer(srv, svc)
@@ -182,6 +187,15 @@ func initStackDriverTracing() {
 }
 
 func initTracing() {
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	ddAgentAddr := os.Getenv("DD_AGENT_HOST")
+	if ddAgentAddr == "" {
+		log.Info("Datadog initialization disabled.")
+		return
+	}
+	tracer.Start(tracer.WithAgentAddr(ddAgentAddr+"8126"), tracer.WithAnalytics(true))
+	defer tracer.Stop()
+
 	initJaegerTracing()
 	initStackDriverTracing()
 }
