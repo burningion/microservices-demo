@@ -34,23 +34,29 @@ spec:
         env:
         - name: PORT
           value: "9555"
+        - name: DD_SERVICE_NAME
+          value: 'ad-service'
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         #- name: JAEGER_SERVICE_ADDR
         #  value: "jaeger-collector:14268"
         resources:
           requests:
             cpu: 200m
-            memory: 180Mi
+            memory: 250Mi
           limits:
             cpu: 300m
-            memory: 300Mi
+            memory: 400Mi
         readinessProbe:
-          initialDelaySeconds: 20
-          periodSeconds: 15
+          initialDelaySeconds: 50
+          periodSeconds: 50
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]
         livenessProbe:
-          initialDelaySeconds: 20
-          periodSeconds: 15
+          initialDelaySeconds: 50
+          periodSeconds: 50
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]
 ---

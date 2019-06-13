@@ -5,6 +5,10 @@ WORKDIR /app
 COPY ["build.gradle", "gradlew", "./"]
 COPY gradle gradle
 RUN chmod +x gradlew
+RUN apt-get -y update && apt-get install -qqy \
+    wget
+
+RUN wget -O dd-java-agent.jar 'https://search.maven.org/classic/remote_content?g=com.datadoghq&a=dd-java-agent&v=0.29.1'
 RUN ./gradlew downloadRepos
 
 COPY . .
@@ -27,7 +31,9 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.2.1 && \
     chmod +x /bin/grpc_health_probe
 
 WORKDIR /app
+
 COPY --from=builder /app .
+RUN wget -O /app/dd-java-agent.jar 'https://search.maven.org/classic/remote_content?g=com.datadoghq&a=dd-java-agent&v=0.29.1'
 
 EXPOSE 9555
 ENTRYPOINT ["/app/build/install/hipstershop/bin/AdService"]
