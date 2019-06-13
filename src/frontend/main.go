@@ -32,6 +32,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
+	grpctrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
 	muxtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -95,6 +96,15 @@ func main() {
 	}
 	log.Out = os.Stdout
 
+	ci := grpctrace.StreamClientInterceptor(
+		grpctrace.WithServiceName("frontend-grpc-client"),
+		grpctrace.WithStreamCalls(false),
+	)
+
+	ui := grpctrace.UnaryClientInterceptor(
+		grpctrace.WithServiceName("frontend-grpc-client"),
+	)
+
 	go initProfiling(log, "frontend", "1.0.0")
 	go initTracing(log)
 
@@ -112,13 +122,13 @@ func main() {
 	mustMapEnv(&svc.shippingSvcAddr, "SHIPPING_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
 
-	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
-	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr)
-	mustConnGRPC(ctx, &svc.cartSvcConn, svc.cartSvcAddr)
-	mustConnGRPC(ctx, &svc.recommendationSvcConn, svc.recommendationSvcAddr)
-	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr)
-	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
-	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
+	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr, ci, ui)
+	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr, ci, ui)
+	mustConnGRPC(ctx, &svc.cartSvcConn, svc.cartSvcAddr, ci, ui)
+	mustConnGRPC(ctx, &svc.recommendationSvcConn, svc.recommendationSvcAddr, ci, ui)
+	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr, ci, ui)
+	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr, ci, ui)
+	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr, ci, ui)
 
 	r := muxtrace.NewRouter(muxtrace.WithServiceName("frontend-app"))
 	r.HandleFunc("/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
@@ -220,6 +230,8 @@ func initTracing(log logrus.FieldLogger) {
 		return
 	}
 	tracer.Start(tracer.WithAgentAddr(ddAgentAddr+"8126"), tracer.WithAnalytics(true))
+	defer tracer.Stop()
+
 	initJaegerTracing(log)
 	initStackdriverTracing(log)
 
@@ -256,12 +268,15 @@ func mustMapEnv(target *string, envKey string) {
 	*target = v
 }
 
-func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
+func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string, ci grpc.StreamClientInterceptor, ui grpc.UnaryClientInterceptor) {
 	var err error
 	*conn, err = grpc.DialContext(ctx, addr,
 		grpc.WithInsecure(),
 		grpc.WithTimeout(time.Second*3),
-		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
+		grpc.WithStreamInterceptor(ci),
+		grpc.WithUnaryInterceptor(ui),
+	)
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}
