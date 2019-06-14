@@ -40,6 +40,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+        - name: DD_INTEGRATION_GRPC_ENABLED
+          value: 'true'
+        - name: DD_INTEGRATION_GRPC-CLIENT_ENABLED
+          value: 'true'
+        - name: DD_INTEGRATION_GRPC-SERVER_ENABLED
+          value: 'true'
         #- name: JAEGER_SERVICE_ADDR
         #  value: "jaeger-collector:14268"
         resources:

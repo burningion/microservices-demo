@@ -46,6 +46,14 @@ spec:
           value: "productcatalogservice:3550"
         - name: ENABLE_PROFILER
           value: "0"
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: DATADOG_SERVICE_NAME
+          value: 'recommendation-service'
+        - name: DATADOG_TRACE_DEBUG
+          value: 'true'
         resources:
           requests:
             cpu: 100m
