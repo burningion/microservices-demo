@@ -15,6 +15,8 @@
 apiVersion: skaffold/v1beta2
 kind: Config
 build:
+  local:
+    push: false
   artifacts:
   # image tags are relative; to specify an image repo (e.g. GCR), you
   # must provide a "default repo" using one of the methods described 
